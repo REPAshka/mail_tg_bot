@@ -61,3 +61,6 @@ venv.bak/
 .pyre/
 .idea/*
 .env
+
+# User data
+config_mail_bot.ini
