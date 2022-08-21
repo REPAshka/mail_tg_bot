@@ -63,4 +63,5 @@ venv.bak/
 .env
 
 # User data
-config_mail_bot.ini
+testing/config_mail_bit.ini
+testing/123.ini
