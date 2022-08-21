@@ -1,9 +1,9 @@
 import re
-import configparser
+from configparser import ConfigParser
 from imbox import Imbox
 from html2text import html2text
 
-config = configparser.ConfigParser()
+config = ConfigParser()
 config.read('config_mail_bot.ini', encoding='utf-8-sig')
 
 
@@ -30,25 +30,29 @@ class Reader(object):
             # print('body_plain', message.body['plain'])
             # print('attachments', message.attachments)
             if len(message.body['html']) > 0:
-                phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['html'][0]).split())
-                print(" ".join((html2text(phrase1)).split()))
-                print(re.sub(r'- ', '-', phrase1))
-                phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
-                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
-                # phrase = re.sub(r'http\S+', '', html2text(message.body['html'][0]), flags=re.MULTILINE)
-                # phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
-                # print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
-                # print("##########################################################################")
+                # phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['html'][0]).split())
+                # print('1'," ".join((html2text(phrase1)).split()))
+                # print('2',re.sub(r'- ', '-', phrase1))
+                # #phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
+                # print('3',re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
+                phrase = html2text(message.body['html'][0])
+                phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
+                phrase = " ".join(re.sub(r'- ', '-', phrase).split())
+                phrase = re.sub(r'http://image\S+', '', phrase, flags=re.MULTILINE)
+                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
+                print("##########################################################################")
             elif len(message.body['plain']) > 0:
-                phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['plain'][0]).split())
-                print(" ".join((html2text(phrase1)).split()))
-                print(re.sub(r'- ', '-', phrase1))
-                phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
-                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
-                # phrase = re.sub(r'http\S+', '', html2text(message.body['plain'][0]), flags=re.MULTILINE)
-                # phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
-                # print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
-                # print("##########################################################################")
+                # phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['plain'][0]).split())
+                # print('1'," ".join((html2text(phrase1)).split()))
+                # print('2',re.sub(r'- ', '-', phrase1))
+                # #phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
+                # print('3',re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
+                phrase = html2text(message.body['plain'][0])
+                phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
+                phrase = " ".join(re.sub(r'- ', '-', phrase).split())
+                phrase = re.sub(r'http://image\S+', '', phrase, flags=re.MULTILINE)
+                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
+                print("##########################################################################")
 
 
 Me = Reader(userName=config.get('mail_ru', 'user'), userPassword=config.get('mail_ru', 'password'))
