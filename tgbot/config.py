@@ -8,6 +8,7 @@ from environs import Env
 config = ConfigParser()
 config.read('config_mail_bot.ini', encoding='utf-8-sig')
 
+
 @dataclass
 class DbConfig:
     host: str
@@ -18,8 +19,8 @@ class DbConfig:
 
 @dataclass
 class TgBot:
-    token: config.get('tg_token', 'token')
-    admin_ids: [int(config.get('tg_id', 'me'))]
+    token: str
+    admin_ids: list[int]
     use_redis: bool
 
 
