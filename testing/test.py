@@ -20,6 +20,23 @@ class Reader(object):
 
     def listMessageIds(self,msg_count):
         """ More or less debug. """
+        def clear_msg(msg):
+            phrase = html2text(msg[0])
+            phrase = " ".join(re.sub(r'\||\---|\[|\]|', '', phrase).split())  # чистка от скобок
+            phrase = " ".join(re.sub(r'- ', '-', phrase).split())  # чиним ломанные ссылки
+            phrase = re.sub(r'http://image', '', phrase, flags=re.MULTILINE)  # удаляем картинки
+            phrase = re.sub(r'\.png|\.jpg', '', phrase)  # удаляем оставшиеся картинки
+            phrase = re.sub(r'!«\w+».|!\w+|\\-', '', phrase)  # чистим от мусора
+            for val in phrase.split():
+                if len(re.findall(r'http\S+', val)) > 0:
+                    #print(val)
+                    for link_val in re.split(r'[\(,\)]', val):
+                        if (re.match(r'https\S+|http\S+', link_val)) and len(link_val) > 70:
+                            # print('VAAAAAAAL', link_val, len(link_val))
+                            phrase = phrase.replace(val, '')  # удалить длинные ссылки
+            print(phrase)
+            print("##########################################################################")
+
         for uid, message in self.all_inbox_messages[:-msg_count:-1]:
             # print('sent_from_name', message.sent_from[0]['name'])
             # print('sent_from_mail', message.sent_from[0]['email'])
@@ -30,29 +47,10 @@ class Reader(object):
             # print('body_plain', message.body['plain'])
             # print('attachments', message.attachments)
             if len(message.body['html']) > 0:
-                # phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['html'][0]).split())
-                # print('1'," ".join((html2text(phrase1)).split()))
-                # print('2',re.sub(r'- ', '-', phrase1))
-                # #phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
-                # print('3',re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
-                phrase = html2text(message.body['html'][0])
-                phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
-                phrase = " ".join(re.sub(r'- ', '-', phrase).split())
-                phrase = re.sub(r'http://image\S+', '', phrase, flags=re.MULTILINE)
-                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
-                print("##########################################################################")
+                clear_msg(message.body['html'])
             elif len(message.body['plain']) > 0:
-                # phrase1 = " ".join(re.sub(r'\||\---|\[|\]', '', message.body['plain'][0]).split())
-                # print('1'," ".join((html2text(phrase1)).split()))
-                # print('2',re.sub(r'- ', '-', phrase1))
-                # #phrase1 = re.sub(r'http\S+', '', phrase1, flags=re.MULTILINE)
-                # print('3',re.sub(r'!«\w+».|!\w+|\\-', '', phrase1))
-                phrase = html2text(message.body['plain'][0])
-                phrase = " ".join(re.sub(r'\||\---|\[|\]', '', phrase).split())
-                phrase = " ".join(re.sub(r'- ', '-', phrase).split())
-                phrase = re.sub(r'http://image\S+', '', phrase, flags=re.MULTILINE)
-                print(re.sub(r'!«\w+».|!\w+|\\-', '', phrase))
-                print("##########################################################################")
+                clear_msg(message.body['plain'])
+
 
 
 Me = Reader(userName=config.get('mail_ru', 'user'), userPassword=config.get('mail_ru', 'password'))

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from environs import Env
 
 
-config = ConfigParser()
-config.read('config_mail_bot.ini', encoding='utf-8-sig')
+# config = ConfigParser()
+# config.read('config_mail_bot.ini', encoding='utf-8-sig')
 
 
 @dataclass

@@ -1,61 +1,57 @@
-import imaplib
-import email
-import quopri
+import re
+from configparser import ConfigParser
+from imbox import Imbox
+from html2text import html2text
+
+config = ConfigParser()
+config.read('config_mail_bot.ini', encoding='utf-8-sig')
 
 
-imap_server = "imap.mail.ru"
-email_server = "timyr4eggg@mail.ru"
-email_password = "hzfAj92CVgmYj9qFIgRR"
+class Reader(object):
+    """ Reads the email and stuff. """
 
-# imap_server = "imap.mail.ru"
-# email_server = "testsurename2000@mail.ru"
-# email_password = "mKRXxsHGhkrgHgkaBhs9"
+    def __init__(self, userName, userPassword):
+        self.inbox = Imbox("imap.mail.ru", username=userName, password=userPassword, ssl=True)
+        self.getMessages()
 
-imap = imaplib.IMAP4_SSL(imap_server)
-imap.login(email_server, email_password)
+    def getMessages(self):
+        self.all_inbox_messages = self.inbox.messages()
+        return self.all_inbox_messages
 
-imap.select("Inbox")
-#imap.select("Sent")
+    def listMessageIds(self,msg_count):
+        """ More or less debug. """
+        def clear_msg(msg):
+            phrase = html2text(msg[0])
+            phrase = " ".join(re.sub(r'\||\---|\[|\]|', '', phrase).split())  # чистка от скобок
+            phrase = " ".join(re.sub(r'- ', '-', phrase).split())  # чиним ломанные ссылки
+            phrase = re.sub(r'http://image', '', phrase, flags=re.MULTILINE)  # удаляем картинки
+            phrase = re.sub(r'\.png|\.jpg', '', phrase)  # удаляем оставшиеся картинки
+            phrase = re.sub(r'!«\w+».|!\w+|\\-', '', phrase)  # чистим от мусора
+            for val in phrase.split():
+                if len(re.findall(r'http\S+', val)) > 0:
+                    #print(val)
+                    for link_val in re.split(r'[\(,\)]', val):
+                        if (re.match(r'https\S+|http\S+', link_val)) and len(link_val) > 70:
+                            # print('VAAAAAAAL', link_val, len(link_val))
+                            phrase = phrase.replace(val, '')  # удалить длинные ссылки
+            print(phrase)
+            print("##########################################################################")
 
-_, msgs = imap.search(None, "ALL")
-
-message_number = 0
-
-print(len(msgs[0].split()))
-
-for msg in msgs[0].split()[::-1]:
-    message_number += 1
-    if message_number < 5:
-        _, data = imap.fetch(msg, "RFC822")
-
-        message = email.message_from_bytes(data[0][1])
-
-        print(message)
-        print(f"Message Number: {msg}")
-        print(f"From: {message.get('From')}")
-        print(f"To: {message.get('To')}")
-        print(f"BCC: {message.get('BCC')}")
-        print(f"Date: {message.get('Date')}")
-        print(f"Subject: {message.get('Subject')}")
-
-        print("Content:")
-        for part in message.walk():
-            if part.get_content_type() == "text/plain":
-                print(part.as_string())
-
-imap.close()
-
-#if __name__ == '__main__':
+        for uid, message in self.all_inbox_messages[:-msg_count:-1]:
+            # print('sent_from_name', message.sent_from[0]['name'])
+            # print('sent_from_mail', message.sent_from[0]['email'])
+            # print('sent_to_name', message.sent_to[0]['name'])
+            # print('sent_to_email', message.sent_to[0]['email'])
+            print('subject', message.subject)
+            # print('date', message.date)
+            # print('body_plain', message.body['plain'])
+            # print('attachments', message.attachments)
+            if len(message.body['html']) > 0:
+                clear_msg(message.body['html'])
+            elif len(message.body['plain']) > 0:
+                clear_msg(message.body['plain'])
 
 
-import email.parser
-msg = email.parser.BytesParser().parsebytes(msg_bytes)
 
-# get a bytes object containing the base64-decoded message
-textbytes = msg.get_payload(decode=True)
-
-# get the content charset
-content_charset = msg.get_content_charset()
-
-# decode the text to obtain a string object
-text = textbytes.decode(content_charset)
+Me = Reader(userName=config.get('mail_ru', 'user'), userPassword=config.get('mail_ru', 'password'))
+Me.listMessageIds(5)
